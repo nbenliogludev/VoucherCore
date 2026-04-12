@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
+import { PrismaModule } from './prisma/prisma.module';
+import { PromoCodesModule } from './promo-codes/promo-codes.module';
 
 @Module({
-  imports: [],
+  imports: [PrismaModule, PromoCodesModule],
   controllers: [],
   providers: [],
 })
