@@ -1,11 +1,9 @@
-version: '3.8'
-
 services:
   db:
     image: postgres:15-alpine
     container_name: voucher_core_db
     ports:
-      - "5432:5432"
+      - "5489:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
