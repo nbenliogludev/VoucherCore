@@ -14,6 +14,7 @@ model PromoCode {
   code               String       @unique
   discountPercentage Decimal
   activationLimit    Int
+  currentActivations Int          @default(0)
   expirationDate     DateTime
 
   createdAt          DateTime     @default(now())

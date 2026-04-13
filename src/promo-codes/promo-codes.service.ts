@@ -73,9 +73,9 @@ export class PromoCodesService {
     }
   }
 
-  async remove(id: string) {
+  async remove(id: string): Promise<void> {
     try {
-      return await this.prisma.promoCode.delete({ where: { id } });
+      await this.prisma.promoCode.delete({ where: { id } });
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === 'P2025') throw new NotFoundException('Promo code not found');
@@ -89,7 +89,7 @@ export class PromoCodesService {
     const { email } = payload;
 
     return this.repository.executeTransaction(async (tx) => {
-      const promoCode = await this.repository.findByCodeWithLock(tx, code);
+      const promoCode = await this.repository.findByCode(tx, code);
 
       if (!promoCode) {
         throw new NotFoundException('Promo code not found');
@@ -99,23 +99,20 @@ export class PromoCodesService {
         throw new BadRequestException('Promo code has expired');
       }
 
-      const currentActivations = await this.repository.countActivations(tx, promoCode.id);
+      const existing = await this.repository.findActivationByEmail(tx, promoCode.id, email);
+      if (existing) {
+        throw new ConflictException('You have already activated this promo code');
+      }
 
-      if (currentActivations >= promoCode.activationLimit) {
+      const isIncremented = await this.repository.incrementActivationCount(tx, promoCode.id, promoCode.activationLimit);
+      if (!isIncremented) {
         throw new BadRequestException('Activation limit exceeded');
       }
 
-      try {
-        await this.repository.createActivation(tx, {
-          email,
-          promoCodeId: promoCode.id,
-        });
-      } catch (e) {
-        if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
-          throw new ConflictException('You have already activated this promo code');
-        }
-        throw e;
-      }
+      await this.repository.createActivation(tx, {
+        email,
+        promoCodeId: promoCode.id,
+      });
 
       return {
         message: 'Promo code activated successfully',
