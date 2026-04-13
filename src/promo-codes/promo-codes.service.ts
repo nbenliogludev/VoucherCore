@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, PromoCode } from '@prisma/client';
+import { PromoCodesRepository } from './promo-codes.repository';
 import { plainToInstance } from 'class-transformer';
 import { PromoCodeResponseDto } from './dto/promo-code-response.dto';
 import { CreatePromoCodeDto } from './dto/create-promo-code.dto';
@@ -9,7 +10,10 @@ import { ActivatePromoCodeDto } from './dto/activate-promo-code.dto';
 
 @Injectable()
 export class PromoCodesService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly repository: PromoCodesRepository
+  ) { }
 
   private toResponse(promo: PromoCode): PromoCodeResponseDto {
     return plainToInstance(PromoCodeResponseDto, {
@@ -84,9 +88,8 @@ export class PromoCodesService {
   async activatePromo(code: string, payload: ActivatePromoCodeDto) {
     const { email } = payload;
 
-    return this.prisma.$transaction(async (tx) => {
-      const rows = await tx.$queryRaw<any[]>`SELECT * FROM "PromoCode" WHERE "code" = ${code} FOR UPDATE`;
-      const promoCode = rows[0];
+    return this.repository.executeTransaction(async (tx) => {
+      const promoCode = await this.repository.findByCodeWithLock(tx, code);
 
       if (!promoCode) {
         throw new NotFoundException('Promo code not found');
@@ -96,20 +99,16 @@ export class PromoCodesService {
         throw new BadRequestException('Promo code has expired');
       }
 
-      const currentActivations = await tx.activation.count({
-        where: { promoCodeId: promoCode.id },
-      });
+      const currentActivations = await this.repository.countActivations(tx, promoCode.id);
 
       if (currentActivations >= promoCode.activationLimit) {
         throw new BadRequestException('Activation limit exceeded');
       }
 
       try {
-        await tx.activation.create({
-          data: {
-            email,
-            promoCodeId: promoCode.id,
-          },
+        await this.repository.createActivation(tx, {
+          email,
+          promoCodeId: promoCode.id,
         });
       } catch (e) {
         if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
