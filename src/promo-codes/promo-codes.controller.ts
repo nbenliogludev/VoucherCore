@@ -27,10 +27,10 @@ export class PromoCodesController {
     @Query('limit') limit?: string,
     @Query('paginate') paginate?: string,
   ) {
-    const isPaginated = paginate !== 'false'; // Defaults to true unless explicitly disabled
+    const isPaginated = paginate !== 'false';
     const pageNumber = page ? parseInt(page, 10) : 1;
     const limitNumber = limit ? parseInt(limit, 10) : 100;
-    
+
     return this.promoCodesService.getAll(isPaginated, pageNumber, limitNumber);
   }
 
