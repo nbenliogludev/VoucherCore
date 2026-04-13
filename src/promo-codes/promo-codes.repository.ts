@@ -12,14 +12,31 @@ export class PromoCodesRepository {
     return this.prisma.$transaction(callback);
   }
 
-  async findByCodeWithLock(tx: Prisma.TransactionClient, code: string): Promise<PromoCode | null> {
-    const rows = await tx.$queryRaw<PromoCode[]>`SELECT * FROM "PromoCode" WHERE "code" = ${code} FOR UPDATE`;
-    return rows[0] || null;
+  async findByCode(tx: Prisma.TransactionClient, code: string): Promise<PromoCode | null> {
+    return tx.promoCode.findUnique({ where: { code } });
   }
 
-  async countActivations(tx: Prisma.TransactionClient, promoCodeId: string): Promise<number> {
-    return tx.activation.count({
-      where: { promoCodeId },
+  async incrementActivationCount(tx: Prisma.TransactionClient, id: string, limit: number): Promise<boolean> {
+    const result = await tx.promoCode.updateMany({
+      where: {
+        id,
+        currentActivations: { lt: limit },
+      },
+      data: {
+        currentActivations: { increment: 1 },
+      },
+    });
+    return result.count > 0;
+  }
+
+  async findActivationByEmail(tx: Prisma.TransactionClient, promoCodeId: string, email: string): Promise<Activation | null> {
+    return tx.activation.findUnique({
+      where: {
+        email_promoCodeId: {
+          email,
+          promoCodeId,
+        },
+      },
     });
   }
 
