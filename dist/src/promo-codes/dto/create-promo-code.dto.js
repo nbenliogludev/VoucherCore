@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreatePromoCodeDto = void 0;
 const class_validator_1 = require("class-validator");
+const class_transformer_1 = require("class-transformer");
 const swagger_1 = require("@nestjs/swagger");
 class CreatePromoCodeDto {
     code;
@@ -21,8 +22,10 @@ class CreatePromoCodeDto {
 exports.CreatePromoCodeDto = CreatePromoCodeDto;
 __decorate([
     (0, swagger_1.ApiProperty)({ example: 'SUMMER2026', description: 'Unique promo code string' }),
+    (0, class_transformer_1.Transform)(({ value }) => typeof value === 'string' ? value.trim().toUpperCase() : value),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.MaxLength)(20),
     __metadata("design:type", String)
 ], CreatePromoCodeDto.prototype, "code", void 0);
 __decorate([
@@ -40,7 +43,9 @@ __decorate([
 ], CreatePromoCodeDto.prototype, "activationLimit", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ example: '2026-12-31T23:59:59.000Z', description: 'ISO Expiration date' }),
-    (0, class_validator_1.IsDateString)(),
-    __metadata("design:type", String)
+    (0, class_transformer_1.Type)(() => Date),
+    (0, class_validator_1.IsDate)(),
+    (0, class_validator_1.MinDate)(new Date(), { message: 'Expiration date must be in the future' }),
+    __metadata("design:type", Date)
 ], CreatePromoCodeDto.prototype, "expirationDate", void 0);
 //# sourceMappingURL=create-promo-code.dto.js.map

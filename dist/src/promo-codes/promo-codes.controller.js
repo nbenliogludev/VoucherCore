@@ -27,8 +27,11 @@ let PromoCodesController = class PromoCodesController {
     create(createPromoCodeDto) {
         return this.promoCodesService.create(createPromoCodeDto);
     }
-    findAll() {
-        return this.promoCodesService.findAll();
+    getAll(page, limit, paginate) {
+        const isPaginated = paginate !== 'false';
+        const pageNumber = page ? parseInt(page, 10) : 1;
+        const limitNumber = limit ? parseInt(limit, 10) : 100;
+        return this.promoCodesService.getAll(isPaginated, pageNumber, limitNumber);
     }
     findOne(id) {
         return this.promoCodesService.findOne(id);
@@ -55,11 +58,17 @@ __decorate([
 ], PromoCodesController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
-    (0, swagger_1.ApiOperation)({ summary: 'List all promo codes' }),
+    (0, swagger_1.ApiOperation)({ summary: 'List all promo codes (supports pagination explicitly)' }),
+    (0, swagger_1.ApiQuery)({ name: 'page', required: false, type: Number, example: 1, description: 'Page number' }),
+    (0, swagger_1.ApiQuery)({ name: 'limit', required: false, type: Number, example: 100, description: 'Items per page' }),
+    (0, swagger_1.ApiQuery)({ name: 'paginate', required: false, type: Boolean, example: true, description: 'Set to false to completely extract all database entries' }),
+    __param(0, (0, common_1.Query)('page')),
+    __param(1, (0, common_1.Query)('limit')),
+    __param(2, (0, common_1.Query)('paginate')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", void 0)
-], PromoCodesController.prototype, "findAll", null);
+], PromoCodesController.prototype, "getAll", null);
 __decorate([
     (0, common_1.Get)(':id'),
     (0, swagger_1.ApiOperation)({ summary: 'Get promo code by ID' }),
