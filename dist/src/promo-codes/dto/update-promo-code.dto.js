@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UpdatePromoCodeDto = void 0;
 const class_validator_1 = require("class-validator");
+const class_transformer_1 = require("class-transformer");
 const swagger_1 = require("@nestjs/swagger");
 class UpdatePromoCodeDto {
     code;
@@ -22,6 +23,7 @@ exports.UpdatePromoCodeDto = UpdatePromoCodeDto;
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({ example: 'WINTER2026' }),
     (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Transform)(({ value }) => typeof value === 'string' ? value.trim().toUpperCase() : value),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], UpdatePromoCodeDto.prototype, "code", void 0);
@@ -43,7 +45,9 @@ __decorate([
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({ example: '2026-12-31T23:59:59.000Z' }),
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsDateString)(),
-    __metadata("design:type", String)
+    (0, class_transformer_1.Type)(() => Date),
+    (0, class_validator_1.IsDate)(),
+    (0, class_validator_1.MinDate)(new Date(), { message: 'Expiration date must be in the future' }),
+    __metadata("design:type", Date)
 ], UpdatePromoCodeDto.prototype, "expirationDate", void 0);
 //# sourceMappingURL=update-promo-code.dto.js.map

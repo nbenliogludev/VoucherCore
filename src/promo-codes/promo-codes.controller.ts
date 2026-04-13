@@ -1,5 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, Query } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { PromoCodesService } from './promo-codes.service';
 import { CreatePromoCodeDto } from './dto/create-promo-code.dto';
 import { UpdatePromoCodeDto } from './dto/update-promo-code.dto';
@@ -18,9 +18,20 @@ export class PromoCodesController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'List all promo codes' })
-  findAll() {
-    return this.promoCodesService.findAll();
+  @ApiOperation({ summary: 'List all promo codes (supports pagination explicitly)' })
+  @ApiQuery({ name: 'page', required: false, type: Number, example: 1, description: 'Page number' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, example: 100, description: 'Items per page' })
+  @ApiQuery({ name: 'paginate', required: false, type: Boolean, example: true, description: 'Set to false to completely extract all database entries' })
+  getAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('paginate') paginate?: string,
+  ) {
+    const isPaginated = paginate !== 'false'; // Defaults to true unless explicitly disabled
+    const pageNumber = page ? parseInt(page, 10) : 1;
+    const limitNumber = limit ? parseInt(limit, 10) : 100;
+    
+    return this.promoCodesService.getAll(isPaginated, pageNumber, limitNumber);
   }
 
   @Get(':id')

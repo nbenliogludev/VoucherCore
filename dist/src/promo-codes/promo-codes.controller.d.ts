@@ -5,42 +5,18 @@ import { ActivatePromoCodeDto } from './dto/activate-promo-code.dto';
 export declare class PromoCodesController {
     private readonly promoCodesService;
     constructor(promoCodesService: PromoCodesService);
-    create(createPromoCodeDto: CreatePromoCodeDto): Promise<{
-        id: string;
-        code: string;
-        discountPercentage: import("@prisma/client-runtime-utils").Decimal;
-        activationLimit: number;
-        expirationDate: Date;
-        createdAt: Date;
-        updatedAt: Date;
+    create(createPromoCodeDto: CreatePromoCodeDto): Promise<import("./dto/promo-code-response.dto").PromoCodeResponseDto>;
+    getAll(page?: string, limit?: string, paginate?: string): Promise<{
+        items: import("./dto/promo-code-response.dto").PromoCodeResponseDto[];
+        meta: {
+            page?: number | undefined;
+            limit?: number | undefined;
+            totalPages?: number | undefined;
+            total: number;
+        };
     }>;
-    findAll(): Promise<{
-        id: string;
-        code: string;
-        discountPercentage: import("@prisma/client-runtime-utils").Decimal;
-        activationLimit: number;
-        expirationDate: Date;
-        createdAt: Date;
-        updatedAt: Date;
-    }[]>;
-    findOne(id: string): Promise<{
-        id: string;
-        code: string;
-        discountPercentage: import("@prisma/client-runtime-utils").Decimal;
-        activationLimit: number;
-        expirationDate: Date;
-        createdAt: Date;
-        updatedAt: Date;
-    }>;
-    update(id: string, updatePromoCodeDto: UpdatePromoCodeDto): Promise<{
-        id: string;
-        code: string;
-        discountPercentage: import("@prisma/client-runtime-utils").Decimal;
-        activationLimit: number;
-        expirationDate: Date;
-        createdAt: Date;
-        updatedAt: Date;
-    }>;
+    findOne(id: string): Promise<import("./dto/promo-code-response.dto").PromoCodeResponseDto>;
+    update(id: string, updatePromoCodeDto: UpdatePromoCodeDto): Promise<import("./dto/promo-code-response.dto").PromoCodeResponseDto>;
     remove(id: string): Promise<{
         id: string;
         code: string;
