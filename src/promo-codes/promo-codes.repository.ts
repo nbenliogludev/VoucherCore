@@ -36,6 +36,18 @@ export class PromoCodesRepository {
     });
   }
 
+  async findById(id: string): Promise<PromoCode | null> {
+    return this.prisma.promoCode.findUnique({ where: { id } });
+  }
+
+  async hasActivations(promoCodeId: string): Promise<boolean> {
+    const activationCount = await this.prisma.activation.count({
+      where: { promoCodeId },
+    });
+
+    return activationCount > 0;
+  }
+
   async incrementActivationCount(
     tx: Prisma.TransactionClient,
     id: string,

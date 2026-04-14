@@ -1,4 +1,4 @@
-import { Expose, Transform } from 'class-transformer';
+import { Expose } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class PromoCodeResponseDto {
@@ -12,7 +12,6 @@ export class PromoCodeResponseDto {
 
   @ApiProperty({ description: 'The discount percentage this code provides' })
   @Expose()
-  @Transform(({ value }) => value !== undefined && value !== null ? Number(value) : value)
   discountPercentage: number;
 
   @ApiProperty({ description: 'How many times this code can be activated' })

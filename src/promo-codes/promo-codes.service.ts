@@ -25,6 +25,12 @@ export class PromoCodesService {
     return code.trim().toUpperCase();
   }
 
+  private validateExpirationDate(expirationDate: Date): void {
+    if (expirationDate.getTime() <= Date.now()) {
+      throw new BadRequestException('Expiration date must be in the future');
+    }
+  }
+
   private toResponse(promo: PromoCode): PromoCodeResponseDto {
     return plainToInstance(
       PromoCodeResponseDto,
@@ -39,6 +45,8 @@ export class PromoCodesService {
   }
 
   async create(data: CreatePromoCodeDto): Promise<PromoCodeResponseDto> {
+    this.validateExpirationDate(data.expirationDate);
+
     try {
       const promo = await this.prisma.promoCode.create({ data: { ...data } });
       return this.toResponse(promo);
@@ -109,6 +117,28 @@ export class PromoCodesService {
     id: string,
     data: UpdatePromoCodeDto,
   ): Promise<PromoCodeResponseDto> {
+    if (data.expirationDate) {
+      this.validateExpirationDate(data.expirationDate);
+    }
+
+    if (data.code !== undefined) {
+      const existingPromo = await this.repository.findById(id);
+
+      if (!existingPromo) {
+        throw new NotFoundException('Promo code not found');
+      }
+
+      if (data.code !== existingPromo.code) {
+        const hasActivations = await this.repository.hasActivations(id);
+
+        if (hasActivations) {
+          throw new ConflictException(
+            'Cannot change promo code after it has been activated',
+          );
+        }
+      }
+    }
+
     try {
       const promo = await this.prisma.promoCode.update({ where: { id }, data });
       return this.toResponse(promo);
