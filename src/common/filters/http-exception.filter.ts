@@ -1,5 +1,37 @@
-import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  ExceptionFilter,
+  Catch,
+  ArgumentsHost,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
+
+function isStringArray(value: unknown): value is string[] {
+  return (
+    Array.isArray(value) && value.every((item) => typeof item === 'string')
+  );
+}
+
+function hasMessageProperty(value: unknown): value is { message: unknown } {
+  return typeof value === 'object' && value !== null && 'message' in value;
+}
+
+function extractErrorMessage(errorResponse: unknown): string | string[] {
+  if (typeof errorResponse === 'string') {
+    return errorResponse;
+  }
+
+  if (hasMessageProperty(errorResponse)) {
+    const { message } = errorResponse;
+
+    if (typeof message === 'string' || isStringArray(message)) {
+      return message;
+    }
+  }
+
+  return 'Internal server error';
+}
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -22,10 +54,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         ? exception.getResponse()
         : { message: 'Internal server error' };
 
-    const message =
-      typeof errorResponse === 'object' && errorResponse !== null && 'message' in errorResponse
-        ? (errorResponse as any).message
-        : errorResponse;
+    const message = extractErrorMessage(errorResponse);
 
     response.status(status).json({
       success: false,

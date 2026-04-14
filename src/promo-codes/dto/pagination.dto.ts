@@ -2,7 +2,7 @@ import { IsOptional, IsInt, Min, Max, IsBoolean } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
-function parseBooleanQuery(value: unknown): boolean | unknown {
+function parseBooleanQuery(value: unknown): unknown {
   if (value === undefined) return true;
   if (typeof value === 'boolean') return value;
 
@@ -16,6 +16,10 @@ function parseBooleanQuery(value: unknown): boolean | unknown {
   return value;
 }
 
+type PaginationQuery = {
+  paginate?: unknown;
+};
+
 export class PaginationDto {
   @ApiPropertyOptional({ example: 1, description: 'Page number' })
   @IsOptional()
@@ -24,7 +28,10 @@ export class PaginationDto {
   @Min(1)
   page?: number = 1;
 
-  @ApiPropertyOptional({ example: 100, description: 'Items per page (Max 500)' })
+  @ApiPropertyOptional({
+    example: 100,
+    description: 'Items per page (Max 500)',
+  })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
@@ -32,9 +39,17 @@ export class PaginationDto {
   @Max(500)
   limit?: number = 100;
 
-  @ApiPropertyOptional({ example: true, description: 'Set to false to directly extract all database entries' })
+  @ApiPropertyOptional({
+    example: true,
+    description: 'Set to false to directly extract all database entries',
+  })
   @IsOptional()
-  @Transform(({ obj }) => parseBooleanQuery(obj.paginate), { toClassOnly: true })
+  @Transform(
+    ({ obj }: { obj: PaginationQuery }) => parseBooleanQuery(obj.paginate),
+    {
+      toClassOnly: true,
+    },
+  )
   @IsBoolean()
   paginate?: boolean = true;
 }
