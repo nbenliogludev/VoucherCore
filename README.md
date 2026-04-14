@@ -18,17 +18,6 @@ The API provides:
 
 Each activation links a promo code to a specific email address and enforces the core business rules from the assignment.
 
-## ✨ Features
-
-- REST API with Swagger UI
-- PostgreSQL persistence
-- Prisma schema and migrations
-- DTO validation with `class-validator`
-- unified success/error response format
-- Docker Compose setup for the database
-- activation flow protected against duplicate activation per email
-- activation history lookup for a specific promo code
-
 ## 🧰 Tech Stack
 
 - `Node.js`
@@ -366,13 +355,3 @@ npm run test:cov
 - Data is persisted using a Docker volume: `postgres_data`.
 - Prisma schema lives in `prisma/schema.prisma`.
 
-## 📝 Submission Notes
-
-This repository contains:
-
-- backend API only
-- no authentication
-- no frontend
-- local development setup
-
-That matches the original test assignment scope.
