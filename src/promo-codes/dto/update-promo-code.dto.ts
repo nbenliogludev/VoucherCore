@@ -1,24 +1,44 @@
-import { IsString, IsNumber, Min, IsDate, IsPositive, IsOptional, MinDate } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsNumber,
+  IsInt,
+  Min,
+  Max,
+  IsDate,
+  IsPositive,
+  IsOptional,
+  MaxLength,
+} from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+
+function normalizePromoCodeValue(value: unknown): unknown {
+  return typeof value === 'string' ? value.trim().toUpperCase() : value;
+}
 
 export class UpdatePromoCodeDto {
   @ApiPropertyOptional({ example: 'WINTER2026' })
   @IsOptional()
-  @Transform(({ value }) => typeof value === 'string' ? value.trim().toUpperCase() : value)
+  @Transform(({ value }: { value: unknown }) => normalizePromoCodeValue(value))
   @IsString()
+  @IsNotEmpty()
+  @MaxLength(20)
   code?: string;
 
   @ApiPropertyOptional({ example: 15.0 })
   @IsOptional()
+  @Type(() => Number)
   @IsNumber({ maxDecimalPlaces: 2 })
   @IsPositive()
   @Min(0.01)
+  @Max(100)
   discountPercentage?: number;
 
   @ApiPropertyOptional({ example: 50 })
   @IsOptional()
-  @IsNumber()
+  @Type(() => Number)
+  @IsInt()
   @Min(1)
   activationLimit?: number;
 
@@ -26,6 +46,5 @@ export class UpdatePromoCodeDto {
   @IsOptional()
   @Type(() => Date)
   @IsDate()
-  @MinDate(new Date(), { message: 'Expiration date must be in the future' })
   expirationDate?: Date;
 }
