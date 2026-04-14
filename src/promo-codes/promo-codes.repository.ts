@@ -19,6 +19,23 @@ export class PromoCodesRepository {
     return tx.promoCode.findUnique({ where: { code } });
   }
 
+  async findByCodeWithActivations(code: string) {
+    return this.prisma.promoCode.findUnique({
+      where: { code },
+      select: {
+        code: true,
+        activations: {
+          select: {
+            email: true,
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+      },
+    });
+  }
+
   async findById(id: string): Promise<PromoCode | null> {
     return this.prisma.promoCode.findUnique({ where: { id } });
   }

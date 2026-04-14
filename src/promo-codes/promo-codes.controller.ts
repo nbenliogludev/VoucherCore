@@ -16,6 +16,7 @@ import { CreatePromoCodeDto } from './dto/create-promo-code.dto';
 import { UpdatePromoCodeDto } from './dto/update-promo-code.dto';
 import { ActivatePromoCodeDto } from './dto/activate-promo-code.dto';
 import { PaginationDto } from './dto/pagination.dto';
+import { PromoCodeActivationEmailsResponseDto } from './dto/promo-code-activation-emails-response.dto';
 
 @ApiTags('promo-codes')
 @Controller('promo-codes')
@@ -39,6 +40,18 @@ export class PromoCodesController {
       query.page,
       query.limit,
     );
+  }
+
+  @Get('code/:code/activations')
+  @ApiOperation({ summary: 'Get activation emails for a promo code' })
+  @ApiParam({ name: 'code', description: 'Unique promo code value' })
+  @ApiResponse({
+    status: 200,
+    description: 'Activation emails retrieved',
+    type: PromoCodeActivationEmailsResponseDto,
+  })
+  findActivationEmails(@Param('code') code: string) {
+    return this.promoCodesService.getActivationEmailsByCode(code);
   }
 
   @Get(':id')

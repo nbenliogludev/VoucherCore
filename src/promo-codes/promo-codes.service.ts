@@ -9,6 +9,7 @@ import { Prisma, PromoCode } from '@prisma/client';
 import { PromoCodesRepository } from './promo-codes.repository';
 import { plainToInstance } from 'class-transformer';
 import { PromoCodeResponseDto } from './dto/promo-code-response.dto';
+import { PromoCodeActivationEmailsResponseDto } from './dto/promo-code-activation-emails-response.dto';
 import { CreatePromoCodeDto } from './dto/create-promo-code.dto';
 import { UpdatePromoCodeDto } from './dto/update-promo-code.dto';
 import { ActivatePromoCodeDto } from './dto/activate-promo-code.dto';
@@ -92,6 +93,24 @@ export class PromoCodesService {
     const promo = await this.prisma.promoCode.findUnique({ where: { id } });
     if (!promo) throw new NotFoundException('Promo code not found');
     return this.toResponse(promo);
+  }
+
+  async getActivationEmailsByCode(
+    code: string,
+  ): Promise<PromoCodeActivationEmailsResponseDto> {
+    const normalizedCode = this.normalizePromoCode(code);
+    const promo =
+      await this.repository.findByCodeWithActivations(normalizedCode);
+
+    if (!promo) {
+      throw new NotFoundException('Promo code not found');
+    }
+
+    return {
+      code: promo.code,
+      emails: promo.activations.map((activation) => activation.email),
+      totalActivations: promo.activations.length,
+    };
   }
 
   async update(
