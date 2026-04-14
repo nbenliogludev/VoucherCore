@@ -1,36 +1,37 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model PromoCode {
   id                 String       @id @default(uuid())
-  code               String       @unique
-  discountPercentage Decimal
-  activationLimit    Int
-  currentActivations Int          @default(0)
-  expirationDate     DateTime
+  code               String       @unique @db.VarChar(20)
+  discountPercentage  Decimal      @db.Decimal(5, 2)
+  activationLimit     Int
+  currentActivations  Int          @default(0)
+  expirationDate      DateTime
 
-  createdAt          DateTime     @default(now())
-  updatedAt          DateTime     @updatedAt
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
 
-  activations        Activation[]
+  activations         Activation[]
+
+  @@index([createdAt])
 }
 
 model Activation {
   id          String    @id @default(uuid())
-  email       String
-  
-  promoCode   PromoCode @relation(fields: [promoCodeId], references: [id])
+  email       String    @db.VarChar(255)
+
+  promoCode   PromoCode @relation(fields: [promoCodeId], references: [id], onDelete: Restrict, onUpdate: Cascade)
   promoCodeId String
 
   createdAt   DateTime  @default(now())
 
   @@unique([email, promoCodeId])
+  @@index([promoCodeId])
 }
