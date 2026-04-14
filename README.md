@@ -14,6 +14,7 @@ The API provides:
 - promo code update
 - promo code deletion
 - promo code activation by email
+- activation email lookup by promo code
 
 Each activation links a promo code to a specific email address and enforces the core business rules from the assignment.
 
@@ -26,6 +27,7 @@ Each activation links a promo code to a specific email address and enforces the 
 - unified success/error response format
 - Docker Compose setup for the database
 - activation flow protected against duplicate activation per email
+- activation history lookup for a specific promo code
 
 ## 🧰 Tech Stack
 
@@ -164,6 +166,7 @@ How to use it:
 | --- | --- | --- |
 | `POST` | `/promo-codes` | Create a promo code |
 | `GET` | `/promo-codes` | List promo codes |
+| `GET` | `/promo-codes/code/:code/activations` | Get emails that activated a promo code |
 | `GET` | `/promo-codes/:id` | Get promo code by UUID |
 | `PATCH` | `/promo-codes/:id` | Update promo code |
 | `DELETE` | `/promo-codes/:id` | Delete promo code |
@@ -206,6 +209,12 @@ curl 'http://127.0.0.1:3000/promo-codes?paginate=false'
 
 ```bash
 curl 'http://127.0.0.1:3000/promo-codes/<promo-code-id>'
+```
+
+### Get activation emails for a promo code
+
+```bash
+curl 'http://127.0.0.1:3000/promo-codes/code/SUMMER2026/activations'
 ```
 
 ### Update promo code
