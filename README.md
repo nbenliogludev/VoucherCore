@@ -1,98 +1,336 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Voucher Core API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend test assignment: a REST API for managing promo codes and activating them by user email.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+This project is built with `Node.js`, `TypeScript`, `NestJS`, `Prisma`, and `PostgreSQL`.
 
-## Description
+## 📌 Overview
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+The API provides:
 
-## Project setup
+- promo code creation
+- promo code retrieval by ID
+- promo code listing with optional pagination
+- promo code update
+- promo code deletion
+- promo code activation by email
 
-```bash
-$ npm install
+Each activation links a promo code to a specific email address and enforces the core business rules from the assignment.
+
+## ✨ Features
+
+- REST API with Swagger UI
+- PostgreSQL persistence
+- Prisma schema and migrations
+- DTO validation with `class-validator`
+- unified success/error response format
+- Docker Compose setup for the database
+- activation flow protected against duplicate activation per email
+
+## 🧰 Tech Stack
+
+- `Node.js`
+- `TypeScript`
+- `NestJS`
+- `Prisma ORM`
+- `PostgreSQL`
+- `Docker Compose`
+
+## 📁 Project Structure
+
+```text
+src/
+  common/             # filters and interceptors
+  prisma/             # Prisma service/module
+  promo-codes/        # controller, service, repository, DTOs
+prisma/
+  migrations/         # database migrations
+  schema.prisma       # Prisma schema
+test/
+  app.e2e-spec.ts     # e2e test entry
+docker-compose.yml    # local PostgreSQL container
 ```
 
-## Compile and run the project
+## ✅ Business Rules
+
+- A promo code has:
+  - `code`
+  - `discountPercentage`
+  - `activationLimit`
+  - `expirationDate`
+- A promo code can be activated only before its expiration date.
+- The same email cannot activate the same promo code more than once.
+- A promo code cannot be activated beyond its activation limit.
+- Promo code list supports explicit pagination via query parameters.
+
+## ⚙️ Prerequisites
+
+Before running the project, make sure you have:
+
+- `Node.js` 20+ recommended
+- `npm`
+- `Docker` with Docker Compose support
+
+## 🐳 Quick Start
+
+### 1. Clone the repository
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+git clone <your-repository-url>
+cd VoucherCore
 ```
 
-## Run tests
+### 2. Create the environment file
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+cp .env.example .env
 ```
 
-## Deployment
+Default local configuration:
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+```env
+DATABASE_URL="postgresql://postgres:password@localhost:5489/voucher_core?schema=public"
+PORT=3000
+```
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### 3. Start PostgreSQL in Docker
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+docker compose up -d
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Note:
 
-## Resources
+- Docker Compose in this project starts the PostgreSQL database only.
+- The NestJS API itself runs locally via `npm` scripts.
 
-Check out a few resources that may come in handy when working with NestJS:
+This starts a PostgreSQL 15 container on:
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+- host: `localhost`
+- port: `5489`
+- database: `voucher_core`
+- user: `postgres`
+- password: `password`
 
-## Support
+To stop the database:
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+docker compose down
+```
 
-## Stay in touch
+### 4. Install dependencies
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```bash
+npm install
+```
 
-## License
+### 5. Apply database migrations
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+```bash
+npx prisma migrate deploy
+```
+
+### 6. Start the API
+
+Development mode:
+
+```bash
+npm run start:dev
+```
+
+The API will be available at:
+
+- Base URL: [http://127.0.0.1:3000](http://127.0.0.1:3000)
+- Swagger UI: [http://127.0.0.1:3000/api/docs](http://127.0.0.1:3000/api/docs)
+
+## 📚 Swagger / API Docs
+
+Swagger is enabled in the project and available at:
+
+[http://127.0.0.1:3000/api/docs](http://127.0.0.1:3000/api/docs)
+
+How to use it:
+
+1. Open the Swagger page in your browser.
+2. Expand any endpoint you want to try.
+3. Click `Try it out`.
+4. Fill in query params, path params, or request body.
+5. Click `Execute`.
+6. Inspect the response body, status code, and generated `curl` command.
+
+## 🔌 API Endpoints
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| `POST` | `/promo-codes` | Create a promo code |
+| `GET` | `/promo-codes` | List promo codes |
+| `GET` | `/promo-codes/:id` | Get promo code by UUID |
+| `PATCH` | `/promo-codes/:id` | Update promo code |
+| `DELETE` | `/promo-codes/:id` | Delete promo code |
+| `POST` | `/promo-codes/:code/activate` | Activate a promo code for an email |
+
+## 🧾 Request Examples
+
+### Create promo code
+
+```bash
+curl -X POST 'http://127.0.0.1:3000/promo-codes' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "code": "SUMMER2026",
+    "discountPercentage": 10.5,
+    "activationLimit": 100,
+    "expirationDate": "2026-12-31T23:59:59.000Z"
+  }'
+```
+
+### List promo codes
+
+```bash
+curl 'http://127.0.0.1:3000/promo-codes'
+```
+
+### List promo codes with pagination
+
+```bash
+curl 'http://127.0.0.1:3000/promo-codes?page=1&limit=10&paginate=true'
+```
+
+### List all promo codes without pagination
+
+```bash
+curl 'http://127.0.0.1:3000/promo-codes?paginate=false'
+```
+
+### Get promo code by ID
+
+```bash
+curl 'http://127.0.0.1:3000/promo-codes/<promo-code-id>'
+```
+
+### Update promo code
+
+```bash
+curl -X PATCH 'http://127.0.0.1:3000/promo-codes/<promo-code-id>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "discountPercentage": 15,
+    "activationLimit": 50
+  }'
+```
+
+### Activate promo code
+
+```bash
+curl -X POST 'http://127.0.0.1:3000/promo-codes/SUMMER2026/activate' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "email": "user@example.com"
+  }'
+```
+
+### Delete promo code
+
+```bash
+curl -X DELETE 'http://127.0.0.1:3000/promo-codes/<promo-code-id>'
+```
+
+## 📨 Request Payloads
+
+### `POST /promo-codes`
+
+```json
+{
+  "code": "SUMMER2026",
+  "discountPercentage": 10.5,
+  "activationLimit": 100,
+  "expirationDate": "2026-12-31T23:59:59.000Z"
+}
+```
+
+### `PATCH /promo-codes/:id`
+
+All fields are optional:
+
+```json
+{
+  "code": "WINTER2026",
+  "discountPercentage": 15,
+  "activationLimit": 50,
+  "expirationDate": "2026-12-31T23:59:59.000Z"
+}
+```
+
+### `POST /promo-codes/:code/activate`
+
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+## 📦 Response Format
+
+Successful responses are wrapped in a common envelope:
+
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "data": {}
+}
+```
+
+Error responses follow this structure:
+
+```json
+{
+  "success": false,
+  "statusCode": 400,
+  "message": "Error message",
+  "timestamp": "2026-04-12T10:00:00.000Z",
+  "path": "/promo-codes"
+}
+```
+
+## 🛠 Useful Commands
+
+```bash
+# start NestJS in watch mode
+npm run start:dev
+
+# start NestJS normally
+npm run start
+
+# build project
+npm run build
+
+# start compiled app
+npm run start:prod
+
+# lint project
+npm run lint
+
+# run tests
+npm run test
+
+# run e2e tests
+npm run test:e2e
+```
+
+## 🗄 Database Notes
+
+- The project uses `docker-compose.yml` to start PostgreSQL locally.
+- Data is persisted using a Docker volume: `postgres_data`.
+- Prisma schema lives in `prisma/schema.prisma`.
+
+## 📝 Submission Notes
+
+This repository contains:
+
+- backend API only
+- no authentication
+- no frontend
+- local development setup
+
+That matches the original test assignment scope.
