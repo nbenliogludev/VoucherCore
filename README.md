@@ -302,6 +302,36 @@ Error responses follow this structure:
 }
 ```
 
+## 🧪 Testing
+
+The repository includes unit tests, infrastructure-focused tests, and e2e coverage for the HTTP layer.
+
+Run the full unit test suite:
+
+```bash
+npm test
+```
+
+Run e2e tests:
+
+```bash
+npm run test:e2e
+```
+
+Generate the coverage report:
+
+```bash
+npm run test:cov
+```
+
+Coverage artifacts are generated locally in:
+
+- `coverage/coverage-final.json`
+- `coverage/lcov.info`
+- `coverage/lcov-report/index.html`
+
+At the current project state, the test suite reaches `100%` coverage for files under `src/`.
+
 ## 🛠 Useful Commands
 
 ```bash
@@ -325,6 +355,9 @@ npm run test
 
 # run e2e tests
 npm run test:e2e
+
+# generate coverage report
+npm run test:cov
 ```
 
 ## 🗄 Database Notes
