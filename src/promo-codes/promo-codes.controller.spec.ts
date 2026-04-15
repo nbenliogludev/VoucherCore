@@ -27,7 +27,7 @@ describe('PromoCodesController', () => {
       activationLimit: 100,
       expirationDate: new Date('2099-12-31T23:59:59.000Z'),
     } as CreatePromoCodeDto;
-    const expected = { id: 'promo-1', ...dto };
+    const expected = { id: 'promo-1', remainingActivations: 100, ...dto };
     service.create.mockResolvedValue(expected);
 
     await expect(controller.create(dto)).resolves.toEqual(expected);
@@ -61,7 +61,11 @@ describe('PromoCodesController', () => {
   });
 
   it('delegates promo code lookup by id to the service', async () => {
-    const expected = { id: 'promo-1', code: 'SUMMER2026' };
+    const expected = {
+      id: 'promo-1',
+      code: 'SUMMER2026',
+      remainingActivations: 100,
+    };
     service.findOne.mockResolvedValue(expected);
 
     await expect(controller.findOne('promo-1')).resolves.toEqual(expected);
@@ -70,7 +74,11 @@ describe('PromoCodesController', () => {
 
   it('delegates promo code updates to the service', async () => {
     const dto = { code: 'WINTER2026' } as UpdatePromoCodeDto;
-    const expected = { id: 'promo-1', code: 'WINTER2026' };
+    const expected = {
+      id: 'promo-1',
+      code: 'WINTER2026',
+      remainingActivations: 100,
+    };
     service.update.mockResolvedValue(expected);
 
     await expect(controller.update('promo-1', dto)).resolves.toEqual(expected);

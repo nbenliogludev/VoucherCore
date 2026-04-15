@@ -18,6 +18,10 @@ export class PromoCodeResponseDto {
   @Expose()
   activationLimit: number;
 
+  @ApiProperty({ description: 'How many activations are still available' })
+  @Expose()
+  remainingActivations: number;
+
   @ApiProperty({ description: 'The date and time this code naturally expires' })
   @Expose()
   expirationDate: Date;
