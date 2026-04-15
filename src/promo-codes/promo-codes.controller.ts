@@ -9,7 +9,9 @@ import {
   HttpCode,
   HttpStatus,
   Query,
+  UseGuards,
 } from '@nestjs/common';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { PromoCodesService } from './promo-codes.service';
 import { CreatePromoCodeDto } from './dto/create-promo-code.dto';
@@ -73,10 +75,13 @@ export class PromoCodesController {
 
   @Post(':code/activate')
   @HttpCode(HttpStatus.OK)
+  @UseGuards(ThrottlerGuard)
+  @Throttle({ default: { limit: 15, ttl: 60000 } })
   @ApiOperation({ summary: 'Activate a promo code by providing email' })
   @ApiResponse({ status: 200, description: 'Activated Successfully' })
   @ApiResponse({ status: 400, description: 'Expired or Limit Exceeded' })
   @ApiResponse({ status: 409, description: 'Already Activated by User' })
+  @ApiResponse({ status: 429, description: 'Too Many Requests' })
   activate(
     @Param('code') code: string,
     @Body() activatePromoCodeDto: ActivatePromoCodeDto,

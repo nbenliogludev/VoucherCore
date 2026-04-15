@@ -1,6 +1,7 @@
 import { Module, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
+import { ThrottlerModule } from '@nestjs/throttler';
 import request from 'supertest';
 import { PromoCodesController } from '../src/promo-codes/promo-codes.controller';
 import { PromoCodesService } from '../src/promo-codes/promo-codes.service';
@@ -26,9 +27,18 @@ describe('PromoCodesController (e2e)', () => {
     create: jest.fn(),
     getAll: jest.fn(),
     getActivationEmailsByCode: jest.fn(),
+    activatePromo: jest.fn(),
   };
 
   @Module({
+    imports: [
+      ThrottlerModule.forRoot([
+        {
+          ttl: 60000,
+          limit: 15,
+        },
+      ]),
+    ],
     controllers: [PromoCodesController],
     providers: [
       {
@@ -172,6 +182,38 @@ describe('PromoCodesController (e2e)', () => {
     expect(promoCodesService.getActivationEmailsByCode).toHaveBeenCalledWith(
       'SUMMER2026',
     );
+  });
+
+  it('POST /promo-codes/:code/activate throttles repeated requests from the same IP', async () => {
+    promoCodesService.activatePromo.mockResolvedValue({
+      message: 'Promo code activated successfully',
+      promoCode: {
+        id: 'promo-1',
+        code: 'SUMMER2026',
+      },
+    });
+
+    for (let requestNumber = 0; requestNumber < 15; requestNumber += 1) {
+      await request(app.getHttpServer())
+        .post('/promo-codes/SUMMER2026/activate')
+        .send({ email: 'user@example.com' })
+        .expect(200);
+    }
+
+    await request(app.getHttpServer())
+      .post('/promo-codes/SUMMER2026/activate')
+      .send({ email: 'user@example.com' })
+      .expect(429)
+      .expect((result) => {
+        const body = result.body as ErrorResponse;
+
+        expect(body.success).toBe(false);
+        expect(body.statusCode).toBe(429);
+        expect(body.message).toBe('ThrottlerException: Too Many Requests');
+        expect(body.path).toBe('/promo-codes/SUMMER2026/activate');
+      });
+
+    expect(promoCodesService.activatePromo).toHaveBeenCalledTimes(15);
   });
 
   it('returns the global validation error format for invalid payloads', async () => {
