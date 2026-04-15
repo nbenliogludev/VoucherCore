@@ -61,16 +61,13 @@ export class PromoCodesService {
     }
   }
 
-  async getAll(
-    isPaginated: boolean = true,
-    page: number = 1,
-    limit: number = 100,
-  ) {
+  async getAll(page: number = 1, limit: number = 100) {
     const skip = (page - 1) * limit;
 
     const [promos, total] = await Promise.all([
       this.prisma.promoCode.findMany({
-        ...(isPaginated ? { skip, take: limit } : {}),
+        skip,
+        take: limit,
         orderBy: { createdAt: 'desc' },
       }),
       this.prisma.promoCode.count(),
@@ -80,11 +77,9 @@ export class PromoCodesService {
       items: promos.map((promo) => this.toResponse(promo)),
       meta: {
         total,
-        ...(isPaginated && {
-          page,
-          limit,
-          totalPages: Math.ceil(total / limit),
-        }),
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
       },
     };
   }

@@ -102,16 +102,24 @@ describe('PromoCodesController (e2e)', () => {
       items: [],
       meta: {
         total: 0,
+        page: 3,
+        limit: 2,
+        totalPages: 0,
       },
     });
 
     await request(app.getHttpServer())
-      .get('/promo-codes?paginate=false&page=3&limit=2')
+      .get('/promo-codes?page=3&limit=2')
       .expect(200)
       .expect((result) => {
         const body = result.body as SuccessResponse<{
           items: [];
-          meta: { total: number };
+          meta: {
+            total: number;
+            page: number;
+            limit: number;
+            totalPages: number;
+          };
         }>;
 
         expect(body).toEqual({
@@ -121,12 +129,15 @@ describe('PromoCodesController (e2e)', () => {
             items: [],
             meta: {
               total: 0,
+              page: 3,
+              limit: 2,
+              totalPages: 0,
             },
           },
         });
       });
 
-    expect(promoCodesService.getAll).toHaveBeenCalledWith(false, 3, 2);
+    expect(promoCodesService.getAll).toHaveBeenCalledWith(3, 2);
   });
 
   it('GET /promo-codes/code/:code/activations hits the dedicated route', async () => {
