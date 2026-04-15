@@ -479,6 +479,21 @@ describe('PromoCodesService', () => {
       );
     });
 
+    it('maps duplicate activation insert races to a conflict response', async () => {
+      repository.findByCode.mockResolvedValue(buildPromo());
+      repository.findActivationByEmail.mockResolvedValue(null);
+      repository.incrementActivationCount.mockResolvedValue(true);
+      repository.createActivation.mockRejectedValue(
+        createKnownRequestError('P2002'),
+      );
+
+      await expect(
+        service.activatePromo('summer2026', { email: 'user@example.com' }),
+      ).rejects.toThrow(
+        new ConflictException('You have already activated this promo code'),
+      );
+    });
+
     it('creates an activation when all checks pass', async () => {
       repository.findByCode.mockResolvedValue(buildPromo());
       repository.findActivationByEmail.mockResolvedValue(null);

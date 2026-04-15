@@ -173,49 +173,62 @@ export class PromoCodesService {
     const { email } = payload;
     const normalizedCode = this.normalizePromoCode(code);
 
-    return this.repository.executeTransaction(async (tx) => {
-      const promoCode = await this.repository.findByCode(tx, normalizedCode);
+    try {
+      return await this.repository.executeTransaction(async (tx) => {
+        const promoCode = await this.repository.findByCode(tx, normalizedCode);
 
-      if (!promoCode) {
-        throw new NotFoundException('Promo code not found');
-      }
+        if (!promoCode) {
+          throw new NotFoundException('Promo code not found');
+        }
 
-      if (new Date() > new Date(promoCode.expirationDate)) {
-        throw new BadRequestException('Promo code has expired');
-      }
+        if (new Date() > new Date(promoCode.expirationDate)) {
+          throw new BadRequestException('Promo code has expired');
+        }
 
-      const existing = await this.repository.findActivationByEmail(
-        tx,
-        promoCode.id,
-        email,
-      );
-      if (existing) {
+        const existing = await this.repository.findActivationByEmail(
+          tx,
+          promoCode.id,
+          email,
+        );
+        if (existing) {
+          throw new ConflictException(
+            'You have already activated this promo code',
+          );
+        }
+
+        const isIncremented = await this.repository.incrementActivationCount(
+          tx,
+          promoCode.id,
+          promoCode.activationLimit,
+        );
+        if (!isIncremented) {
+          throw new BadRequestException('Activation limit exceeded');
+        }
+
+        await this.repository.createActivation(tx, {
+          email,
+          promoCodeId: promoCode.id,
+        });
+
+        return {
+          message: 'Promo code activated successfully',
+          promoCode: {
+            id: promoCode.id,
+            code: promoCode.code,
+          },
+        };
+      });
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2002'
+      ) {
         throw new ConflictException(
           'You have already activated this promo code',
         );
       }
 
-      const isIncremented = await this.repository.incrementActivationCount(
-        tx,
-        promoCode.id,
-        promoCode.activationLimit,
-      );
-      if (!isIncremented) {
-        throw new BadRequestException('Activation limit exceeded');
-      }
-
-      await this.repository.createActivation(tx, {
-        email,
-        promoCodeId: promoCode.id,
-      });
-
-      return {
-        message: 'Promo code activated successfully',
-        promoCode: {
-          id: promoCode.id,
-          code: promoCode.code,
-        },
-      };
-    });
+      throw e;
+    }
   }
 }
