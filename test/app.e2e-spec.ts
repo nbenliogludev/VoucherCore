@@ -66,6 +66,7 @@ describe('PromoCodesController (e2e)', () => {
       code: 'SUMMER2026',
       discountPercentage: 10.5,
       activationLimit: 5,
+      remainingActivations: 5,
       expirationDate,
     });
 
@@ -82,6 +83,9 @@ describe('PromoCodesController (e2e)', () => {
         const body = result.body as SuccessResponse<{ code: string }>;
         expect(body.success).toBe(true);
         expect(body.data.code).toBe('SUMMER2026');
+        expect(
+          (body.data as { remainingActivations: number }).remainingActivations,
+        ).toBe(5);
       });
 
     expect(promoCodesService.create).toHaveBeenCalledWith(

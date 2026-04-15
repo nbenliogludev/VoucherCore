@@ -39,6 +39,10 @@ export class PromoCodesService {
         discountPercentage: promo.discountPercentage
           ? Number(promo.discountPercentage)
           : null,
+        remainingActivations: Math.max(
+          0,
+          promo.activationLimit - promo.currentActivations,
+        ),
       },
       { excludeExtraneousValues: true },
     );

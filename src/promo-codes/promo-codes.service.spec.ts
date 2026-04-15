@@ -72,6 +72,7 @@ describe('PromoCodesService', () => {
         code: 'SUMMER2026',
         discountPercentage: 10.5,
         activationLimit: 100,
+        remainingActivations: 100,
         expirationDate,
       });
       expect(prisma.promoCode.create).toHaveBeenCalledWith({
@@ -162,6 +163,7 @@ describe('PromoCodesService', () => {
             code: 'SUMMER2026',
             discountPercentage: 10.5,
             activationLimit: 100,
+            remainingActivations: 100,
             expirationDate: new Date('2099-12-31T23:59:59.000Z'),
           },
         ],
@@ -190,6 +192,7 @@ describe('PromoCodesService', () => {
         code: 'SUMMER2026',
         discountPercentage: 10.5,
         activationLimit: 100,
+        remainingActivations: 100,
         expirationDate: new Date('2099-12-31T23:59:59.000Z'),
       });
       expect(prisma.promoCode.findUnique).toHaveBeenCalledWith({
@@ -259,6 +262,7 @@ describe('PromoCodesService', () => {
         code: 'SUMMER2026',
         discountPercentage: 15,
         activationLimit: 100,
+        remainingActivations: 100,
         expirationDate: new Date('2099-12-31T23:59:59.000Z'),
       });
       expect(repository.findById).not.toHaveBeenCalled();
@@ -287,6 +291,7 @@ describe('PromoCodesService', () => {
         code: 'SUMMER2026',
         discountPercentage: 10.5,
         activationLimit: 100,
+        remainingActivations: 100,
         expirationDate: new Date('2099-12-31T23:59:59.000Z'),
       });
       expect(repository.hasActivations).not.toHaveBeenCalled();
@@ -320,6 +325,7 @@ describe('PromoCodesService', () => {
         code: 'WINTER2026',
         discountPercentage: 10.5,
         activationLimit: 100,
+        remainingActivations: 100,
         expirationDate: new Date('2099-12-31T23:59:59.000Z'),
       });
       expect(repository.hasActivations).toHaveBeenCalledWith('promo-1');
@@ -338,6 +344,21 @@ describe('PromoCodesService', () => {
         ),
       );
       expect(prisma.promoCode.update).not.toHaveBeenCalled();
+    });
+
+    it('clamps remaining activations at zero for over-activated legacy data', async () => {
+      prisma.promoCode.findUnique.mockResolvedValue(
+        buildPromo({ activationLimit: 5, currentActivations: 8 }),
+      );
+
+      await expect(service.findOne('promo-1')).resolves.toEqual({
+        id: 'promo-1',
+        code: 'SUMMER2026',
+        discountPercentage: 10.5,
+        activationLimit: 5,
+        remainingActivations: 0,
+        expirationDate: new Date('2099-12-31T23:59:59.000Z'),
+      });
     });
 
     it('maps known Prisma update errors to HTTP exceptions', async () => {
