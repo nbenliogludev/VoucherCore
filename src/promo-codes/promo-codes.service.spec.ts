@@ -155,7 +155,7 @@ describe('PromoCodesService', () => {
       prisma.promoCode.findMany.mockResolvedValue([buildPromo()]);
       prisma.promoCode.count.mockResolvedValue(8);
 
-      await expect(service.getAll(true, 3, 2)).resolves.toEqual({
+      await expect(service.getAll(3, 2)).resolves.toEqual({
         items: [
           {
             id: 'promo-1',
@@ -178,31 +178,6 @@ describe('PromoCodesService', () => {
         orderBy: { createdAt: 'desc' },
       });
       expect(prisma.promoCode.count).toHaveBeenCalledTimes(1);
-    });
-
-    it('returns all promo codes with only the total count when pagination is disabled', async () => {
-      prisma.promoCode.findMany.mockResolvedValue([
-        buildPromo({ id: 'promo-2', discountPercentage: null }),
-      ]);
-      prisma.promoCode.count.mockResolvedValue(1);
-
-      await expect(service.getAll(false, 3, 2)).resolves.toEqual({
-        items: [
-          {
-            id: 'promo-2',
-            code: 'SUMMER2026',
-            discountPercentage: null,
-            activationLimit: 100,
-            expirationDate: new Date('2099-12-31T23:59:59.000Z'),
-          },
-        ],
-        meta: {
-          total: 1,
-        },
-      });
-      expect(prisma.promoCode.findMany).toHaveBeenCalledWith({
-        orderBy: { createdAt: 'desc' },
-      });
     });
   });
 

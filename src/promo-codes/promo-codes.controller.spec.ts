@@ -35,13 +35,13 @@ describe('PromoCodesController', () => {
   });
 
   it('delegates promo code listing to the service', async () => {
-    const expected = { items: [], meta: { total: 0 } };
+    const expected = { items: [], meta: { total: 0, page: 3, limit: 2 } };
     service.getAll.mockResolvedValue(expected);
 
-    await expect(
-      controller.getAll({ paginate: false, page: 3, limit: 2 }),
-    ).resolves.toEqual(expected);
-    expect(service.getAll).toHaveBeenCalledWith(false, 3, 2);
+    await expect(controller.getAll({ page: 3, limit: 2 })).resolves.toEqual(
+      expected,
+    );
+    expect(service.getAll).toHaveBeenCalledWith(3, 2);
   });
 
   it('delegates activation-email lookup to the service', async () => {

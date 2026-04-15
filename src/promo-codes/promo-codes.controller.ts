@@ -31,15 +31,9 @@ export class PromoCodesController {
   }
 
   @Get()
-  @ApiOperation({
-    summary: 'List all promo codes (supports pagination explicitly)',
-  })
+  @ApiOperation({ summary: 'List all promo codes' })
   getAll(@Query() query: PaginationDto) {
-    return this.promoCodesService.getAll(
-      query.paginate,
-      query.page,
-      query.limit,
-    );
+    return this.promoCodesService.getAll(query.page, query.limit);
   }
 
   @Get('code/:code/activations')
