@@ -350,6 +350,21 @@ describe('PromoCodesService', () => {
       expect(repository.hasActivations).toHaveBeenCalledWith('promo-1');
     });
 
+    it('prevents lowering the activation limit below current activations', async () => {
+      repository.findById.mockResolvedValue(
+        buildPromo({ currentActivations: 50 }),
+      );
+
+      await expect(
+        service.update('promo-1', { activationLimit: 1 }),
+      ).rejects.toThrow(
+        new ConflictException(
+          'Activation limit cannot be lower than current activations',
+        ),
+      );
+      expect(prisma.promoCode.update).not.toHaveBeenCalled();
+    });
+
     it('maps known Prisma update errors to HTTP exceptions', async () => {
       prisma.promoCode.update
         .mockRejectedValueOnce(createKnownRequestError('P2025'))

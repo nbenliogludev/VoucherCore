@@ -117,18 +117,21 @@ export class PromoCodesService {
     id: string,
     data: UpdatePromoCodeDto,
   ): Promise<PromoCodeResponseDto> {
+    const shouldLoadExistingPromo =
+      data.code !== undefined || data.activationLimit !== undefined;
+
     if (data.expirationDate) {
       this.validateExpirationDate(data.expirationDate);
     }
 
-    if (data.code !== undefined) {
+    if (shouldLoadExistingPromo) {
       const existingPromo = await this.repository.findById(id);
 
       if (!existingPromo) {
         throw new NotFoundException('Promo code not found');
       }
 
-      if (data.code !== existingPromo.code) {
+      if (data.code !== undefined && data.code !== existingPromo.code) {
         const hasActivations = await this.repository.hasActivations(id);
 
         if (hasActivations) {
@@ -136,6 +139,15 @@ export class PromoCodesService {
             'Cannot change promo code after it has been activated',
           );
         }
+      }
+
+      if (
+        data.activationLimit !== undefined &&
+        data.activationLimit < existingPromo.currentActivations
+      ) {
+        throw new ConflictException(
+          'Activation limit cannot be lower than current activations',
+        );
       }
     }
 
