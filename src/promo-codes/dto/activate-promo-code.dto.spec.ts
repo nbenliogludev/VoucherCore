@@ -4,11 +4,12 @@ import { validateSync } from 'class-validator';
 import { ActivatePromoCodeDto } from './activate-promo-code.dto';
 
 describe('ActivatePromoCodeDto', () => {
-  it('accepts valid email addresses', () => {
+  it('accepts valid email addresses and normalizes them', () => {
     const dto = plainToInstance(ActivatePromoCodeDto, {
-      email: 'user@example.com',
+      email: '  User@Example.com  ',
     });
 
+    expect(dto.email).toBe('user@example.com');
     expect(validateSync(dto)).toHaveLength(0);
   });
 

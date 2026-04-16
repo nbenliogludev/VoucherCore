@@ -184,6 +184,28 @@ describe('PromoCodesController (e2e)', () => {
     );
   });
 
+  it('POST /promo-codes/:code/activate normalizes email before reaching the service', async () => {
+    promoCodesService.activatePromo.mockResolvedValue({
+      message: 'Promo code activated successfully',
+      promoCode: {
+        id: 'promo-1',
+        code: 'SUMMER2026',
+      },
+    });
+
+    await request(app.getHttpServer())
+      .post('/promo-codes/SUMMER2026/activate')
+      .send({ email: ' User@Example.com ' })
+      .expect(200);
+
+    expect(promoCodesService.activatePromo).toHaveBeenCalledWith(
+      'SUMMER2026',
+      expect.objectContaining({
+        email: 'user@example.com',
+      }),
+    );
+  });
+
   it('POST /promo-codes/:code/activate throttles repeated requests from the same IP', async () => {
     promoCodesService.activatePromo.mockResolvedValue({
       message: 'Promo code activated successfully',

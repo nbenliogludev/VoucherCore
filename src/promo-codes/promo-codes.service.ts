@@ -25,6 +25,10 @@ export class PromoCodesService {
     return code.trim().toUpperCase();
   }
 
+  private normalizeEmail(email: string): string {
+    return email.trim().toLowerCase();
+  }
+
   private validateExpirationDate(expirationDate: Date): void {
     if (expirationDate.getTime() <= Date.now()) {
       throw new BadRequestException('Expiration date must be in the future');
@@ -181,7 +185,7 @@ export class PromoCodesService {
   }
 
   async activatePromo(code: string, payload: ActivatePromoCodeDto) {
-    const { email } = payload;
+    const normalizedEmail = this.normalizeEmail(payload.email);
     const normalizedCode = this.normalizePromoCode(code);
 
     try {
@@ -199,7 +203,7 @@ export class PromoCodesService {
         const existing = await this.repository.findActivationByEmail(
           tx,
           promoCode.id,
-          email,
+          normalizedEmail,
         );
         if (existing) {
           throw new ConflictException(
@@ -217,7 +221,7 @@ export class PromoCodesService {
         }
 
         await this.repository.createActivation(tx, {
-          email,
+          email: normalizedEmail,
           promoCodeId: promoCode.id,
         });
 
