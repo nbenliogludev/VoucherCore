@@ -89,6 +89,46 @@ describe('PromoCodesRepository', () => {
     });
   });
 
+  it('updates a promo code only when the activation limit still allows it', async () => {
+    const promo = { id: 'promo-1', activationLimit: 50 };
+    prisma.$transaction.mockImplementation(
+      (callback: (client: typeof tx) => Promise<typeof promo | null>) =>
+        callback(tx),
+    );
+    tx.promoCode.updateMany.mockResolvedValue({ count: 1 });
+    tx.promoCode.findUnique.mockResolvedValue(promo);
+
+    await expect(
+      repository.updateIfActivationLimitAllows('promo-1', 50, {
+        activationLimit: 50,
+      } as never),
+    ).resolves.toBe(promo);
+    expect(tx.promoCode.updateMany).toHaveBeenCalledWith({
+      where: {
+        id: 'promo-1',
+        currentActivations: { lte: 50 },
+      },
+      data: { activationLimit: 50 },
+    });
+    expect(tx.promoCode.findUnique).toHaveBeenCalledWith({
+      where: { id: 'promo-1' },
+    });
+  });
+
+  it('returns null when the activation limit condition no longer matches', async () => {
+    prisma.$transaction.mockImplementation(
+      (callback: (client: typeof tx) => Promise<null>) => callback(tx),
+    );
+    tx.promoCode.updateMany.mockResolvedValue({ count: 0 });
+
+    await expect(
+      repository.updateIfActivationLimitAllows('promo-1', 50, {
+        activationLimit: 50,
+      } as never),
+    ).resolves.toBeNull();
+    expect(tx.promoCode.findUnique).not.toHaveBeenCalled();
+  });
+
   it('returns whether a promo code has activations', async () => {
     prisma.activation.count.mockResolvedValueOnce(2).mockResolvedValueOnce(0);
 

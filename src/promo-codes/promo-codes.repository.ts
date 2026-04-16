@@ -40,6 +40,28 @@ export class PromoCodesRepository {
     return this.prisma.promoCode.findUnique({ where: { id } });
   }
 
+  async updateIfActivationLimitAllows(
+    id: string,
+    activationLimit: number,
+    data: Prisma.PromoCodeUpdateInput,
+  ): Promise<PromoCode | null> {
+    return this.prisma.$transaction(async (tx) => {
+      const result = await tx.promoCode.updateMany({
+        where: {
+          id,
+          currentActivations: { lte: activationLimit },
+        },
+        data,
+      });
+
+      if (result.count === 0) {
+        return null;
+      }
+
+      return tx.promoCode.findUnique({ where: { id } });
+    });
+  }
+
   async hasActivations(promoCodeId: string): Promise<boolean> {
     const activationCount = await this.prisma.activation.count({
       where: { promoCodeId },

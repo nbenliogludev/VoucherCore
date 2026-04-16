@@ -120,14 +120,11 @@ export class PromoCodesService {
     id: string,
     data: UpdatePromoCodeDto,
   ): Promise<PromoCodeResponseDto> {
-    const shouldLoadExistingPromo =
-      data.code !== undefined || data.activationLimit !== undefined;
-
     if (data.expirationDate) {
       this.validateExpirationDate(data.expirationDate);
     }
 
-    if (shouldLoadExistingPromo) {
+    if (data.code !== undefined) {
       const existingPromo = await this.repository.findById(id);
 
       if (!existingPromo) {
@@ -143,18 +140,31 @@ export class PromoCodesService {
           );
         }
       }
-
-      if (
-        data.activationLimit !== undefined &&
-        data.activationLimit < existingPromo.currentActivations
-      ) {
-        throw new ConflictException(
-          'Activation limit cannot be lower than current activations',
-        );
-      }
     }
 
     try {
+      if (data.activationLimit !== undefined) {
+        const promo = await this.repository.updateIfActivationLimitAllows(
+          id,
+          data.activationLimit,
+          data,
+        );
+
+        if (!promo) {
+          const existingPromo = await this.repository.findById(id);
+
+          if (!existingPromo) {
+            throw new NotFoundException('Promo code not found');
+          }
+
+          throw new ConflictException(
+            'Activation limit cannot be lower than current activations',
+          );
+        }
+
+        return this.toResponse(promo);
+      }
+
       const promo = await this.prisma.promoCode.update({ where: { id }, data });
       return this.toResponse(promo);
     } catch (e) {

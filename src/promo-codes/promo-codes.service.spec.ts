@@ -42,6 +42,7 @@ describe('PromoCodesService', () => {
   const repository = {
     findByCodeWithActivations: jest.fn(),
     findById: jest.fn(),
+    updateIfActivationLimitAllows: jest.fn(),
     hasActivations: jest.fn(),
     executeTransaction: jest.fn(),
     findByCode: jest.fn(),
@@ -332,6 +333,7 @@ describe('PromoCodesService', () => {
     });
 
     it('prevents lowering the activation limit below current activations', async () => {
+      repository.updateIfActivationLimitAllows.mockResolvedValue(null);
       repository.findById.mockResolvedValue(
         buildPromo({ currentActivations: 50 }),
       );
@@ -342,6 +344,43 @@ describe('PromoCodesService', () => {
         new ConflictException(
           'Activation limit cannot be lower than current activations',
         ),
+      );
+      expect(prisma.promoCode.update).not.toHaveBeenCalled();
+      expect(repository.updateIfActivationLimitAllows).toHaveBeenCalledWith(
+        'promo-1',
+        1,
+        { activationLimit: 1 },
+      );
+    });
+
+    it('throws not found when the atomic activation-limit update cannot find the promo code', async () => {
+      repository.updateIfActivationLimitAllows.mockResolvedValue(null);
+      repository.findById.mockResolvedValue(null);
+
+      await expect(
+        service.update('missing', { activationLimit: 50 }),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('uses an atomic conditional update when activationLimit is provided', async () => {
+      repository.updateIfActivationLimitAllows.mockResolvedValue(
+        buildPromo({ activationLimit: 50 }),
+      );
+
+      await expect(
+        service.update('promo-1', { activationLimit: 50 }),
+      ).resolves.toEqual({
+        id: 'promo-1',
+        code: 'SUMMER2026',
+        discountPercentage: 10.5,
+        activationLimit: 50,
+        remainingActivations: 50,
+        expirationDate: new Date('2099-12-31T23:59:59.000Z'),
+      });
+      expect(repository.updateIfActivationLimitAllows).toHaveBeenCalledWith(
+        'promo-1',
+        50,
+        { activationLimit: 50 },
       );
       expect(prisma.promoCode.update).not.toHaveBeenCalled();
     });
