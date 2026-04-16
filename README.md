@@ -10,7 +10,7 @@ The API provides:
 
 - promo code creation
 - promo code retrieval by ID
-- promo code listing with optional pagination
+- promo code listing with pagination
 - promo code update
 - promo code deletion
 - promo code activation by email
@@ -185,13 +185,7 @@ curl 'http://127.0.0.1:3000/promo-codes'
 ### List promo codes with pagination
 
 ```bash
-curl 'http://127.0.0.1:3000/promo-codes?page=1&limit=10&paginate=true'
-```
-
-### List all promo codes without pagination
-
-```bash
-curl 'http://127.0.0.1:3000/promo-codes?paginate=false'
+curl 'http://127.0.0.1:3000/promo-codes?page=1&limit=10'
 ```
 
 ### Get promo code by ID
@@ -354,4 +348,3 @@ npm run test:cov
 - The project uses `docker-compose.yml` to start PostgreSQL locally.
 - Data is persisted using a Docker volume: `postgres_data`.
 - Prisma schema lives in `prisma/schema.prisma`.
-
