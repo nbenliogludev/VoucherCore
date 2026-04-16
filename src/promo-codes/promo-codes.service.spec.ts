@@ -466,7 +466,7 @@ describe('PromoCodesService', () => {
       });
 
       await expect(
-        service.activatePromo('summer2026', { email: 'user@example.com' }),
+        service.activatePromo('summer2026', { email: 'User@Example.com' }),
       ).rejects.toBeInstanceOf(ConflictException);
       expect(repository.findActivationByEmail).toHaveBeenCalledWith(
         tx,
@@ -512,7 +512,7 @@ describe('PromoCodesService', () => {
       repository.createActivation.mockResolvedValue({ id: 'activation-1' });
 
       await expect(
-        service.activatePromo('summer2026', { email: 'user@example.com' }),
+        service.activatePromo('summer2026', { email: ' User@Example.com ' }),
       ).resolves.toEqual({
         message: 'Promo code activated successfully',
         promoCode: {
