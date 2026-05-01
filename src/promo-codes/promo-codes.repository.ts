@@ -4,7 +4,7 @@ import { Prisma, PromoCode, Activation } from '@prisma/client';
 
 @Injectable()
 export class PromoCodesRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async executeTransaction<T>(
     callback: (tx: Prisma.TransactionClient) => Promise<T>,
