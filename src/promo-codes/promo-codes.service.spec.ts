@@ -23,7 +23,6 @@ function buildPromo(overrides: Partial<Record<string, unknown>> = {}) {
 function createKnownRequestError(code: string) {
   const error = new Error(`Prisma error: ${code}`);
   Object.setPrototypeOf(error, Prisma.PrismaClientKnownRequestError.prototype);
-
   return Object.assign(error, { code });
 }
 
@@ -203,7 +202,6 @@ describe('PromoCodesService', () => {
 
     it('throws when the promo code does not exist', async () => {
       prisma.promoCode.findUnique.mockResolvedValue(null);
-
       await expect(service.findOne('missing')).rejects.toBeInstanceOf(
         NotFoundException,
       );
@@ -301,7 +299,6 @@ describe('PromoCodesService', () => {
     it('prevents code changes once activations exist', async () => {
       repository.findById.mockResolvedValue(buildPromo({ code: 'SUMMER2026' }));
       repository.hasActivations.mockResolvedValue(true);
-
       await expect(
         service.update('promo-1', { code: 'WINTER2026' }),
       ).rejects.toThrow(
@@ -318,7 +315,6 @@ describe('PromoCodesService', () => {
       prisma.promoCode.update.mockResolvedValue(
         buildPromo({ code: 'WINTER2026' }),
       );
-
       await expect(
         service.update('promo-1', { code: 'WINTER2026' }),
       ).resolves.toEqual({
